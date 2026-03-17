@@ -3,10 +3,10 @@ from tkinter import messagebox, ttk
 import requests
 import warnings
 
-# Silenciar avisos de certificados
+
 warnings.filterwarnings("ignore", category=UserWarning, module='urllib3')
 
-# --- MODEL (Suas Classes de Domínio) ---
+
 class Usuario:
     def __init__(self, id, name, email):
         self.id = id
@@ -27,7 +27,7 @@ class Comentario:
         self.name = name
         self.body = body
 
-# --- VIEW & CONTROLLER (Interface Gráfica) ---
+
 class DashboardApp:
     def __init__(self, root):
         self.root = root
@@ -48,7 +48,7 @@ class DashboardApp:
         self.tree.heading("Post", text="Último Post")
         self.tree.heading("Comentarios", text="Comentários")
         
-        # Ajuste de largura das colunas
+        
         self.tree.column("Usuario", width=150)
         self.tree.column("Email", width=150)
         self.tree.column("Post", width=250)
@@ -64,38 +64,38 @@ class DashboardApp:
             self.status_label.config(text="Buscando dados na API RESTful...", fg="blue")
             self.root.update()
 
-            # Consumo da API (GET) com Timeout (Resiliência)
+            
             res_users = requests.get("https://jsonplaceholder.typicode.com/users", timeout=5)
             res_posts = requests.get("https://jsonplaceholder.typicode.com/posts", timeout=5)
             res_comments = requests.get("https://jsonplaceholder.typicode.com/comments", timeout=5)
 
-            # Transforma JSON em Listas
+            
             users_data = res_users.json()
             posts_data = res_posts.json()
             comments_data = res_comments.json()
 
-            # Limpa a tabela
+            
             for i in self.tree.get_children():
                 self.tree.delete(i)
 
-            # Processamento usando as Classes do Model
+          
             for u in users_data[:8]: 
-                # Instancia o Objeto Usuario
+                
                 user = Usuario(u['id'], u['name'], u['email'])
                 
-                # Busca postagem associada (Relacionamento 1:N)
+                
                 user_post_raw = next((p for p in posts_data if p['userId'] == user.id), None)
                 
                 if user_post_raw:
                     post = Postagem(user_post_raw['userId'], user_post_raw['id'], user_post_raw['title'], user_post_raw['body'])
-                    # Conta comentários desse post
+                    
                     qtd_comments = len([c for c in comments_data if c['postId'] == post.id])
                     titulo_exibicao = post.title[:40] + "..."
                 else:
                     titulo_exibicao = "Sem postagens"
                     qtd_comments = 0
 
-                # Insere na View
+                
                 self.tree.insert("", tk.END, values=(user.name, user.email, titulo_exibicao, qtd_comments))
 
             self.status_label.config(text="Status: Dados Sincronizados com Sucesso!", fg="green")
